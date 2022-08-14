@@ -1,0 +1,86 @@
+openapi: 3.0.3
+
+info:
+  version: 0.0.1
+  title: Currency Service
+  description:
+    This service generates prices of some currency pairs' purchases based on time, stores that information and lets you get that information
+
+
+servers:
+  - url: https://localhost:8081/
+    description: The server of the Currency Service
+
+
+tags:
+  - name: "PurchasesOfACurrencyPair"
+  - name: "PurchasesOfAllCurrencyPairs"
+  
+  
+paths:
+  /purchases:
+    get:
+      description: This gets all the currency pairs and purchase story for each of them
+      tags:
+        - "PurchasesOfAllCurrencyPairs"
+      operationId: getAllPurchaseStories
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: "#/components/schemas/PurchaseStory"
+        "400":
+          description: BAD REQUEST
+  /purchases/{currencyPairName}:
+    get:
+      tags:
+        - "PurchasesOfACurrencyPair"
+      operationId: getPurchaseStoryByCurrencyPair
+      parameters:
+        - name: currencyPairName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchaseStory"
+          
+          
+components:
+  schemas:
+  
+    
+    Purchase:
+      description: All information about a purchase including purchase id, currency pair name, price, date and time
+      properties:
+        id:
+          type: string
+        currencyPair:
+          type: string
+        price:
+          type: number
+          format: double
+        date:
+          type: string
+    
+    
+    PurchaseStory:
+      type: array
+      items:
+        $ref: "#/components/schemas/Purchase"
+        
+          
+        
+        
+        
+      
+    

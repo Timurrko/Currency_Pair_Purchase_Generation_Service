@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Map;
 
@@ -17,9 +18,9 @@ import java.util.Map;
 @SpringBootApplication
 public class CurrencyServiceApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(CurrencyServiceApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(CurrencyServiceApplication.class, args);
+    }
 
 }
 
@@ -27,19 +28,28 @@ public class CurrencyServiceApplication {
 @RequestMapping("/purchases")
 class RestApiDemoController {
 
-	private final CurrencyPairPurchaseStoryGenerator currencyPairPurchaseStoryGenerator;
+    private final CurrencyPairPurchaseStoryGenerator currencyPairPurchaseStoryGenerator;
 
-	public RestApiDemoController(@Autowired CurrencyPairPurchaseStoryGenerator currencyPairPurchaseStoryGenerator, @Value("${currencyPairsFile}") String currencyPairsFile) {
-		this.currencyPairPurchaseStoryGenerator = currencyPairPurchaseStoryGenerator;
-		currencyPairPurchaseStoryGenerator.loadCurrencyPairNamesFromJSON(currencyPairsFile);
-	}
+    public RestApiDemoController(@Autowired CurrencyPairPurchaseStoryGenerator currencyPairPurchaseStoryGenerator, @Value("${currencyPairsFile}") String currencyPairsFile, @Value("${spareCurrencyPairsFile}") String spareCurrencyPairsFile) {
+        this.currencyPairPurchaseStoryGenerator = currencyPairPurchaseStoryGenerator;
+        try{
+            currencyPairPurchaseStoryGenerator.loadCurrencyPairNamesFromJSON(currencyPairsFile);
+        }
+        catch (RuntimeException exception){
+            currencyPairPurchaseStoryGenerator.loadCurrencyPairNamesFromJSON(spareCurrencyPairsFile);
+        }
+        finally {
+            currencyPairPurchaseStoryGenerator.addCurrencyPair("AAAAAA");
+        }
+    }
 
-	@GetMapping("/")
-	Map<String, List<Purchase>> getAllPurchaseStories(){
-		return this.currencyPairPurchaseStoryGenerator.getStoryStorage();
-	}
-	@GetMapping("/{id}")
-	List<Purchase> getPurchaseStoryByCurrencyPair(@PathVariable String id) {
-		return currencyPairPurchaseStoryGenerator.getPurchaseStoryByCurrencyPairName(id);
-	}
+    @GetMapping("")
+    Map<String, List<Purchase>> getAllPurchaseStories() {
+        return this.currencyPairPurchaseStoryGenerator.getStoryStorage();
+    }
+
+    @GetMapping("/{currencyPairName}")
+    List<Purchase> getPurchaseStoryByCurrencyPair(@PathVariable String currencyPairName) {
+        return currencyPairPurchaseStoryGenerator.getPurchaseStoryByCurrencyPairName(currencyPairName);
+    }
 }
